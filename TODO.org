@@ -1,0 +1,12 @@
+* Add alarm status to display - DONE
+Will require changing display_time_* funcs
+
+* Make alarm display blink - DONE
+Will require making display_alarm_* funcs
+
+* Refactor main loop to sleep in intervals smaller than 1 sec - DONE
+This will make user input snappier, but will require altering how time is incremented
+
+* Enable user to set time and alarm time
+Will require some complex additions
+
