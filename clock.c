@@ -7,8 +7,7 @@
 int increment_time(int time);
 void display_time_with_meridiem(int time, bool alarm_on);
 void display_time_without_meridiem(int time, bool alarm_on);
-void display_alarm_with_meridiem(int alarm_time);
-void display_alarm_without_meridiem(int alarm_time);
+void display_alarm(int alarm_time, bool meridiem);
 
 int
 increment_time(int time)
@@ -61,18 +60,16 @@ display_time_without_meridiem(int time, bool alarm_on)
 }
 
 void
-display_alarm_with_meridiem(int alarm_time)
+display_alarm(int alarm_time, bool meridiem)
 {
 	attron(A_BLINK);
-	display_time_with_meridiem(alarm_time, true);
-	attroff(A_BLINK);
-}
 
-void
-display_alarm_without_meridiem(int alarm_time)
-{
-	attron(A_BLINK);
-	display_time_without_meridiem(alarm_time, true);
+	if (meridiem) {
+		display_time_with_meridiem(alarm_time, true);
+	} else {
+		display_time_without_meridiem(alarm_time, true);
+	}
+
 	attroff(A_BLINK);
 }
 
@@ -103,11 +100,7 @@ main(int argc, char *argv[])
 	while (1) {
 		clear();
 		if (alarm_triggered) {
-			if (meridiem) {
-				display_alarm_with_meridiem(alarm_time);
-			} else {
-				display_alarm_without_meridiem(alarm_time);
-			}
+			display_alarm(alarm_time, meridiem);
 		} else {
 			if (meridiem) {
 				display_time_with_meridiem(time, alarm_on);
