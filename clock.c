@@ -1,3 +1,4 @@
+#include <curses.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,7 +32,7 @@ display_time_with_meridiem(int time)
 		meridiem = 'A';
 	}
 
-	printf("%0.2d:%0.2d:%0.2d %cM\n", hours, minutes, seconds, meridiem);
+	mvprintw(10, 10, "%0.2d:%0.2d:%0.2d %cM\n", hours, minutes, seconds, meridiem);
 }
 
 void
@@ -41,7 +42,7 @@ display_time_without_meridiem(int time)
 	int minutes = (time / 60) % 60;
 	int seconds = time % 60;
 
-	printf("%0.2d:%0.2d:%0.2d\n", hours, minutes, seconds);
+	mvprintw(10, 10, "%0.2d:%0.2d:%0.2d\n", hours, minutes, seconds);
 }
 
 int
@@ -55,8 +56,19 @@ main(int argc, char *argv[])
 	int alarm_time = 85410; // time value at which alarm triggers if alarm_on is true
 	bool alarm_triggered = false; // bool to determine if alarm has been triggered
 
+	WINDOW *stdscr = initscr();
+	if (stdscr == NULL)
+		return 1;
+
+	noecho();
+	curs_set(FALSE);
+	cbreak();
+	nodelay(stdscr, TRUE);
+	int key;
+
 	/* main clock loop */
 	while (1) {
+		clear();
 		if (alarm_triggered) {
 			if (meridiem) {
 				display_time_with_meridiem(alarm_time);
@@ -70,6 +82,7 @@ main(int argc, char *argv[])
 				display_time_without_meridiem(time);
 			}
 		}
+		refresh();
 
 		time = increment_time(time);
 
@@ -77,8 +90,27 @@ main(int argc, char *argv[])
 			alarm_triggered = true;
 		}
 
+		key = getch();
+
+		if (key == 113) { // q: quit
+			goto EXIT;
+		} else if (key == 109) { // m: toggle meridiem
+			if (meridiem == false) {
+				meridiem = true;
+			} else {
+				meridiem = false;
+			}
+		} else if (key == 97) { // a: diable triggered alarm
+			if (alarm_triggered) {
+				alarm_triggered = false;
+			}
+		}
+
 		sleep(1); // pause for 1 second
 	}
+
+EXIT:
+	endwin();
 
 	return 0;
 }
