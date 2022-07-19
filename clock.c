@@ -111,7 +111,7 @@ int
 main(int argc, char *argv[])
 {
 	bool power_on = true; // boolean representing power status of clock.
-	                      //if false, main loop does nothing but wait for quit or power toggle input
+	                      // if false, main loop does nothing but wait for quit or power-toggle input
 		
 	int time = 85400; // 24hr time in seconds, max val = 86400
 
