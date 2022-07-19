@@ -11,7 +11,7 @@ This will make user input snappier, but will require altering how time is increm
 Will require some complex additions
 Did by adding display_setting_buffer() and adding new key commands (s, S, d, D, i, I, f) in main()
 
-* Enable user to turn entire clock on/off
+* Enable user to turn entire clock on/off - DONE
 Will require some simple refactoring of main()
 
 * Improve the look of the displayed time
