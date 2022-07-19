@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 int increment_time(int time);
+int ensure_valid_time(int value);
 void display_time_with_meridiem(int time, bool alarm_on);
 void display_time_without_meridiem(int time, bool alarm_on);
 void display_alarm(int alarm_time, bool meridiem);
@@ -16,6 +17,18 @@ increment_time(int time)
 	if (time == 86399)
 		return 0;
 	return time + 1;
+}
+
+int
+ensure_valid_time(int value)
+{
+	if (value < 0) {
+		return value + 86400;
+	} else if (value >= 86400) {
+		return value - 86400;
+	} else {
+		return value;
+	}
 }
 
 void
@@ -222,6 +235,14 @@ main(int argc, char *argv[])
 				time = time_set_buffer;
 				is_setting = 'n';
 			}
+		}
+
+		// if user is currently setting a time, make sure their buffer is a valid time
+		// (not negative and not above 86400)
+		if (is_setting == 'a') {
+			alarm_set_buffer = ensure_valid_time(alarm_set_buffer);
+		} else if (is_setting == 't') {
+			time_set_buffer = ensure_valid_time(time_set_buffer);
 		}
 
 		usleep(1e5); // pause for 1/10 second
