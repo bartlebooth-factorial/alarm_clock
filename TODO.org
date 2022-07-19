@@ -22,6 +22,9 @@ Will require changing display_alarm()
 ** Reason: A_BLINK seems to work in some terminals and not others
 Worked for me in Wezterm and not in Alacritty
 
+* Improve clarity with how information (snooze status, set buffers) is displayed
+Will require some changes to display_* funcs
+
 
 
 
