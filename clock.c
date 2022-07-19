@@ -141,7 +141,7 @@ main(int argc, char *argv[])
 	int next_snooze_alarm_time; // will equal previous snoozed alarm time + snooze_step minutes,
 	                            // used to keep track of when a snoozed alarm needs to retrigger
 	                            // without altering the set alarm_time
-	int snooze_step = 1; // number of minutes later a snoozed alarm will re-trigger
+	int snooze_step = 5; // number of minutes later a snoozed alarm will re-trigger
 
 	char is_setting = 'n'; // char to store whether the user is setting time ('t') or alarm_time ('a'),
 	                       // or not setting anything ('n')
@@ -245,9 +245,9 @@ main(int argc, char *argv[])
 					alarm_triggered = false;
 					if (snooze_on) {
 						if (snoozed) {
-							next_snooze_alarm_time += (10 * snooze_step);
+							next_snooze_alarm_time += (60 * snooze_step);
 						} else {
-							next_snooze_alarm_time = alarm_time + (10 * snooze_step);
+							next_snooze_alarm_time = alarm_time + (60 * snooze_step);
 							snoozed = true;
 						}
 					}
