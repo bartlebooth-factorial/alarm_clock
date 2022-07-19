@@ -110,19 +110,24 @@ display_setting_buffer(int buffer, bool meridiem)
 int
 main(int argc, char *argv[])
 {
-	bool power_on = true; // boolean representing power status of clock. if false, main loop does nothing but wait
+	bool power_on = true; // boolean representing power status of clock.
+	                      //if false, main loop does nothing but wait for quit or power toggle input
 		
 	int time = 85400; // 24hr time in seconds, max val = 86400
-	int time_set_buffer = 0; // a 24hr timeval in seconds, incremented by minutes when user is setting the time
+
 
 	bool meridiem = false; // if true, display time with meridiem info (AM/PM)
 
 	bool alarm_on = true; // booolean to determine if alarm will trigger
 	int alarm_time = 85410; // time value at which alarm triggers if alarm_on is true
-	int alarm_set_buffer = 0; // a 24hr timeval in seconds, incremented by minutes when user is setting the alarm time
 	bool alarm_triggered = false; // bool to determine if alarm has been triggered
 
-	char is_setting = 'n'; // char to store whether the user is setting time ('t') or alarm_time ('a'), or not setting anything ('n')
+	char is_setting = 'n'; // char to store whether the user is setting time ('t') or alarm_time ('a'),
+	                       // or not setting anything ('n')
+	int time_set_buffer = 0; // a 24hr timeval in seconds, which user can change
+	                         // by hours or minutes while setting time
+	int alarm_set_buffer = 0; // a 24hr timeval in seconds, which user can change
+	                          // by hours or minutes while setting time
 
 	WINDOW *stdscr = initscr();
 	if (stdscr == NULL)
