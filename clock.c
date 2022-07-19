@@ -8,6 +8,7 @@ int increment_time(int time);
 void display_time_with_meridiem(int time, bool alarm_on);
 void display_time_without_meridiem(int time, bool alarm_on);
 void display_alarm(int alarm_time, bool meridiem);
+void display_setting_buffer(int buffer, bool meridiem);
 
 int
 increment_time(int time)
@@ -73,16 +74,40 @@ display_alarm(int alarm_time, bool meridiem)
 	attroff(A_BLINK);
 }
 
+void
+display_setting_buffer(int buffer, bool meridiem)
+{
+	int hours = buffer / (60 * 60);
+	int minutes = (buffer / 60) % 60;
+
+	if (meridiem) {
+		char meridiem;
+		if (hours > 12) {
+			meridiem = 'P';
+			hours -= 12;
+		} else {
+			meridiem = 'A';
+		}
+		mvprintw(20, 10, "%0.2d:%0.2d:00 %cM\n", hours, minutes, meridiem);
+	} else {
+		mvprintw(20, 10, "%0.2d:%0.2d:00\n", hours, minutes);
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
 	int time = 85400; // 24hr time in seconds, max val = 86400
+	int time_set_buffer = 0; // a 24hr timeval in seconds, incremented by minutes when user is setting the time
 
 	bool meridiem = false; // if true, display time with meridiem info (AM/PM)
 
 	bool alarm_on = true; // booolean to determine if alarm will trigger
 	int alarm_time = 85410; // time value at which alarm triggers if alarm_on is true
+	int alarm_set_buffer = 0; // a 24hr timeval in seconds, incremented by minutes when user is setting the alarm time
 	bool alarm_triggered = false; // bool to determine if alarm has been triggered
+
+	char is_setting = 'n'; // char to store whether the user is setting time ('t') or alarm_time ('a'), or not setting anything ('n')
 
 	WINDOW *stdscr = initscr();
 	if (stdscr == NULL)
@@ -99,6 +124,7 @@ main(int argc, char *argv[])
 	/* main clock loop */
 	while (1) {
 		clear();
+
 		if (alarm_triggered) {
 			display_alarm(alarm_time, meridiem);
 		} else {
@@ -108,6 +134,21 @@ main(int argc, char *argv[])
 				display_time_without_meridiem(time, alarm_on);
 			}
 		}
+
+		if (is_setting == 'a') {
+			if (meridiem) {
+				display_setting_buffer(alarm_set_buffer, true);
+			} else {
+				display_setting_buffer(alarm_set_buffer, false);
+			}
+		} else if (is_setting == 't') {
+			if (meridiem) {
+				display_setting_buffer(time_set_buffer, true);
+			} else {
+				display_setting_buffer(time_set_buffer, false);
+			}
+		}
+
 		refresh();
 
 		if (run_count == 9) {
@@ -134,12 +175,52 @@ main(int argc, char *argv[])
 		} else if (key == 97) { // a: toggle alarm_on
 			if (alarm_on) {
 				alarm_on = false;
+				alarm_triggered = false;
 			} else {
 				alarm_on = true;
 			}
 		} else if (key == 32) { // space: untrigger a triggered alarm
 			if (alarm_triggered) {
 				alarm_triggered = false;
+			}
+		} else if (key == 115) { // s: set alarm
+			is_setting = 'a';
+		} else if (key == 83) { // S: set time
+			is_setting = 't';
+		} else if (key == 100) { // d: decrease time being set by one minute
+			if (is_setting == 'a') {
+				alarm_set_buffer -= 60;
+			} else if (is_setting == 't') {
+				time_set_buffer -= 60;
+			}
+		} else if (key == 105) { // i: increase time being set by one minute
+			if (is_setting == 'a') {
+				alarm_set_buffer += 60;
+			} else if (is_setting == 't') {
+				time_set_buffer += 60;
+			}
+		} else if (key == 68) { // D: decrease time being set by one hour
+			if (is_setting == 'a') {
+				alarm_set_buffer -= 3600;
+			} else if (is_setting == 't') {
+				time_set_buffer -= 3600;
+			}
+		} else if (key == 73) { // I: increase time being set by one hour
+			if (is_setting == 'a') {
+				alarm_set_buffer += 3600;
+			} else if (is_setting == 't') {
+				time_set_buffer += 3600;
+			}
+		} else if (key == 102) { // f: finish setting time (set time will take effect)
+			if (is_setting == 'a') {
+				alarm_time = alarm_set_buffer;
+				if (alarm_triggered) {
+					alarm_triggered = false;
+				}
+				is_setting = 'n';
+			} else if (is_setting == 't') {
+				time = time_set_buffer;
+				is_setting = 'n';
 			}
 		}
 
