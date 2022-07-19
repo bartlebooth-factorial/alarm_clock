@@ -6,9 +6,9 @@
 
 int increment_time(int time);
 int ensure_valid_time(int value);
-void display_time_with_meridiem(int time, bool alarm_on);
-void display_time_without_meridiem(int time, bool alarm_on);
-void display_alarm(int alarm_time, bool meridiem);
+void display_time_with_meridiem(int time, bool alarm_on, bool snooze_on);
+void display_time_without_meridiem(int time, bool alarm_on, bool snooze_on);
+void display_alarm(int alarm_time, bool meridiem, bool snoozed);
 void display_setting_buffer(int buffer, bool meridiem);
 
 int
@@ -32,13 +32,14 @@ ensure_valid_time(int value)
 }
 
 void
-display_time_with_meridiem(int time, bool alarm_on)
+display_time_with_meridiem(int time, bool alarm_on, bool snooze_on)
 {
 	int hours = time / (60 * 60);
 	int minutes = (time / 60) % 60;
 	int seconds = time % 60;
 	char meridiem;
 	char alarm_status;
+	char snooze_status;
 
 	if (hours > 12) {
 		meridiem = 'P';
@@ -53,35 +54,49 @@ display_time_with_meridiem(int time, bool alarm_on)
 		alarm_status = 'V';
 	}
 
-	mvprintw(10, 10, "%0.2d:%0.2d:%0.2d %cM (%c)\n", hours, minutes, seconds, meridiem, alarm_status);
+	if (snooze_on) {
+		snooze_status = 'z';
+	} else {
+		snooze_status = ' ';
+	}
+
+	mvprintw(10, 10, "%0.2d:%0.2d:%0.2d %cM (%c) [%c]\n", hours, minutes, seconds, meridiem, alarm_status, snooze_status);
 }
 
 void
-display_time_without_meridiem(int time, bool alarm_on)
+display_time_without_meridiem(int time, bool alarm_on, bool snooze_on)
 {
 	int hours = time / (60 * 60);
 	int minutes = (time / 60) % 60;
 	int seconds = time % 60;
 	char alarm_status;
+	char snooze_status;
 
 	if (alarm_on) {
 		alarm_status = 'A';
 	} else {
 		alarm_status = 'V';
 	}
+
+	if (snooze_on) {
+		snooze_status = 'z';
+	} else {
+		snooze_status = ' ';
+	}
+
 	
-	mvprintw(10, 10, "%0.2d:%0.2d:%0.2d (%c)\n", hours, minutes, seconds, alarm_status);
+	mvprintw(10, 10, "%0.2d:%0.2d:%0.2d (%c) [%c]\n", hours, minutes, seconds, alarm_status, snooze_status);
 }
 
 void
-display_alarm(int alarm_time, bool meridiem)
+display_alarm(int alarm_time, bool meridiem, bool snoozed)
 {
 	attron(A_BLINK);
 
 	if (meridiem) {
-		display_time_with_meridiem(alarm_time, true);
+		display_time_with_meridiem(alarm_time, true, snoozed);
 	} else {
-		display_time_without_meridiem(alarm_time, true);
+		display_time_without_meridiem(alarm_time, true, snoozed);
 	}
 
 	attroff(A_BLINK);
@@ -121,6 +136,12 @@ main(int argc, char *argv[])
 	bool alarm_on = true; // booolean to determine if alarm will trigger
 	int alarm_time = 85410; // time value at which alarm triggers if alarm_on is true
 	bool alarm_triggered = false; // bool to determine if alarm has been triggered
+	bool snooze_on = true; // if true, <space> will snooze a triggered alarm
+	bool snoozed = false; // true if an alarm has been snoozed and a following alarm is pending
+	int next_snooze_alarm_time; // will equal previous snoozed alarm time + snooze_step minutes,
+	                            // used to keep track of when a snoozed alarm needs to retrigger
+	                            // without altering the set alarm_time
+	int snooze_step = 5; // number of minutes later a snoozed alarm will re-trigger
 
 	char is_setting = 'n'; // char to store whether the user is setting time ('t') or alarm_time ('a'),
 	                       // or not setting anything ('n')
@@ -147,12 +168,16 @@ main(int argc, char *argv[])
 			clear();
 
 			if (alarm_triggered) {
-				display_alarm(alarm_time, meridiem);
+				if (snoozed) {
+					display_alarm(next_snooze_alarm_time, meridiem, snoozed);
+				} else {
+					display_alarm(alarm_time, meridiem, snoozed);
+				}
 			} else {
 				if (meridiem) {
-					display_time_with_meridiem(time, alarm_on);
+					display_time_with_meridiem(time, alarm_on, snooze_on);
 				} else {
-					display_time_without_meridiem(time, alarm_on);
+					display_time_without_meridiem(time, alarm_on, snooze_on);
 				}
 			}
 
@@ -181,6 +206,8 @@ main(int argc, char *argv[])
 
 			if (alarm_on && time == alarm_time) {
 				alarm_triggered = true;
+			} else if (snoozed && time == next_snooze_alarm_time) {
+				alarm_triggered = true;
 			}
 
 			key = getch();
@@ -201,12 +228,29 @@ main(int argc, char *argv[])
 				if (alarm_on) {
 					alarm_on = false;
 					alarm_triggered = false;
+					if (snoozed) {
+						snoozed = false;
+					}
 				} else {
 					alarm_on = true;
 				}
-			} else if (key == 32) { // space: untrigger a triggered alarm
+			} else if (key == 122) { // z: toggle snooze_on
+				if (snooze_on) {
+					snooze_on = false;
+				} else {
+					snooze_on = true;
+				}
+			} else if (key == 32) { // space: silence or snooze a triggered alarm
 				if (alarm_triggered) {
 					alarm_triggered = false;
+					if (snooze_on) {
+						if (snoozed) {
+							next_snooze_alarm_time += (60 * snooze_step);
+						} else {
+							next_snooze_alarm_time = alarm_time + (60 * snooze_step);
+							snoozed = true;
+						}
+					}
 				}
 			} else if (key == 115) { // s: set alarm
 				is_setting = 'a';
