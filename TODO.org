@@ -20,7 +20,7 @@ Will require changing the display_* funcs
 * Find an alternative to A_BLINK for displaying the triggered alarm
 Will require changing display_alarm()
 ** Reason: A_BLINK seems to work in some terminals and not others
-Worked for me in Wezterm and not in Alacritty
+Worked for me in Wezterm and Xterm, but not in Alacritty
 
 
 
