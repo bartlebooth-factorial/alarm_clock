@@ -14,8 +14,8 @@ Did by adding display_setting_buffer() and adding new key commands (s, S, d, D, 
 * Enable user to turn entire clock on/off - DONE
 Will require some simple refactoring of main()
 
-* Improve the look of the displayed time
-Will require changing the display_* funcs
+* Improve the look of the displayed time - IN PROGRESS
+Developing new display functions in display.c, will eventually be included into clock.c
 
 * Find an alternative to A_BLINK for displaying the triggered alarm
 Will require changing display_alarm()
