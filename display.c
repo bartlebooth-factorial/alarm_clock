@@ -39,7 +39,7 @@ print_digit(int num)
 	printf("\n");
 
 	if (!(num == 1 || num == 4 || num == 7)) {
-		printf(" - ");		
+		printf(" - ");
 	}
 
 	printf("\n");
